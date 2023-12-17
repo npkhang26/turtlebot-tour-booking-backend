@@ -1,0 +1,64 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id Int @id @default(autoincrement())
+  email String @unique
+  hashedPass String
+  firstName String
+  lastName String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  // relationship one-many
+  tours Tour[] 
+
+  @@map("users") //name shown in DB
+}
+
+enum TourStatus {
+  CREATED
+  TO_USER
+  WAITING
+  TO_DES
+  CANCELLED
+  DONE
+}
+model Tour {
+  id Int @id @default(autoincrement())
+
+  fromStation Int
+  from Station @relation(fields: [fromStation], references: [id], name: "from")
+  toStation Int
+  to Station @relation(fields: [toStation], references: [id], name: "to")
+  
+  status TourStatus @default(CREATED)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // relationship
+  userId Int
+  user User @relation(fields: [userId], references: [id])
+
+  @@map("tours") //name shown in DB
+}
+
+model Station {
+  id Int @id @default(autoincrement())
+  name String 
+  zone String
+  description String
+  fromTour Tour[] @relation("from")
+  toTour Tour[] @relation("to")
+
+  @@map("stations")
+}
